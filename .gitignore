@@ -3,10 +3,19 @@ node_modules/
 
 # Build output
 dist/
+dist-ssr
+*.local
 
 # IDE/editor settings
-.vscode/
-.idea/
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.sw?
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 *.sw?
 
 # System files
@@ -17,6 +26,8 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # Environment files (optional)
 .env
