@@ -4,6 +4,7 @@ import type { Charge } from './Charge'
 import { calculateElectrostaticForce, forceVectorFromTestCharge, formatCharge } from './Charge'
 import { CHARGE_COLORS, CHARGE_DEFAULT_FONT_SIZE, CHARGE_FONT, CHARGE_LINE_STYLE, CHARGE_LINE_WIDTH, CHARGE_RADIUS, CHARGE_TEXT_COLOR, GRID_LINE_STYLE, GRID_LINE_WIDTH, MAX_CHARGES, SCALE, VECTOR_MAX_LENGTH } from './values'
 import './style.css'
+import { createInfoPanel } from './components/InfoPanel'
 let charges: Charge[]
 
 function setup() {
@@ -114,6 +115,13 @@ function capVectorLength(vec: Vector): Vector {
   return mag <= VECTOR_MAX_LENGTH ? vec : Vec.scale(vec, VECTOR_MAX_LENGTH / mag)
 }
 
+function handleHover(ctx: CanvasRenderingContext2D, event: MouseEvent): HTMLDivElement | undefined {
+  if (!isWithinCanvas(ctx, event.x, event.y)) return
+  const gridMouseCoordinates = viewportToGrid(ctx, event.x, event.y)
+  const charge = findHoveredCharge(gridMouseCoordinates.x, gridMouseCoordinates.y)
+  return charge != undefined ? createInfoPanel(`charge-${charge?.position.x}-${charge?.position.y}`, `${charge.position.x}, ${charge.position.y}`) : undefined
+}
+
 function handleClick(ctx: CanvasRenderingContext2D, event: MouseEvent) {
   const button = event.button
   const x = event.x
@@ -213,6 +221,12 @@ function draw() {
   drawCharges(ctx)
   document.onmousedown = event => {
     handleClick(ctx, event)
+  }
+
+  document.onmousemove = event => {
+    const element = handleHover(ctx, event)
+    console.log(element)
+    if (element != undefined) document.body.appendChild(element)
   }
 }
 
