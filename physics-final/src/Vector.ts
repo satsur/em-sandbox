@@ -16,6 +16,14 @@ export function add(v1: Vector, v2: Vector): Vector {
     return { x: v1.x + v2.x, y: v1.y + v2.y }
 }
 
+export function addMany(vecs: Vector[]): Vector {
+    let v = {x:0, y:0}
+    for (const vec of vecs) {
+        v = add(v, vec)
+    }
+    return v
+}
+
 export function subtract(v1: Vector, v2: Vector): Vector {
     return { x: v1.x - v2.x, y: v1.y - v2.y }
 }
@@ -43,7 +51,7 @@ export function distance(v1: Vector, v2: Vector): Vector {
     const xdiff = v2.x - v1.x
     const ydiff = v2.y - v1.y;
     return {
-        x: v1.x + xdiff,
-        y: v1.y + ydiff
+        x: xdiff,
+        y: ydiff
     }
 }

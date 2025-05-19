@@ -1,7 +1,7 @@
 import type { Vector } from './Vector'
 import * as Vec from './Vector'
 import type { Charge } from './Charge'
-import { electrostaticForce, formatCharge } from './Charge'
+import { calculateElectrostaticForce, forceVectorFromTestCharge, formatCharge } from './Charge'
 import { CHARGE_COLORS, CHARGE_DEFAULT_FONT_SIZE, CHARGE_FONT, CHARGE_LINE_STYLE, CHARGE_LINE_WIDTH, CHARGE_RADIUS, CHARGE_TEXT_COLOR, GRID_LINE_STYLE, GRID_LINE_WIDTH, MAX_CHARGES, SCALE } from './values'
 import './style.css'
 let charges: Charge[]
@@ -59,7 +59,7 @@ function drawGrid(ctx: CanvasRenderingContext2D, width: number, height: number) 
   }
 }
 
-function drawCharges(ctx: CanvasRenderingContext2D, charges: Charge[]) {
+function drawCharges(ctx: CanvasRenderingContext2D) {
   charges.forEach(charge => {
     const chargePosition = gridToCanvas(charge.position.x, charge.position.y)
     
@@ -85,6 +85,30 @@ function drawCharges(ctx: CanvasRenderingContext2D, charges: Charge[]) {
     ctx.fillText(formatCharge(charge.magnitude), chargePosition.x, chargePosition.y)
 
   })
+}
+
+function drawForceVectors(ctx: CanvasRenderingContext2D) {
+  for (let x = 0; x < ctx.canvas.width; x += SCALE) {
+    for (let y = 0; y < ctx.canvas.height; y += SCALE) {
+      let tooClose: boolean = false
+      const gridPos: Vector = canvasToGrid(x, y)
+      const testCharge: Charge = {position: gridPos, magnitude: 1} // Charge placement MUST use grid position
+      const forceVectors: Vector[] = []
+      for (const charge of charges) {
+        // Avoid drawing electrostatic force vectors right next to the point charge because it
+        // creates the illusion of attraction by positive charges and repulsion by negative charges
+        // Bit of a non-elegant work around, but it works for now
+        if (Vec.magnitude(Vec.distance(gridPos, charge.position)) <= 2) {
+          tooClose = true
+          break;
+        }
+        forceVectors.push(forceVectorFromTestCharge(testCharge, charge, calculateElectrostaticForce(testCharge, charge)))
+      }
+      if (!tooClose) {
+        drawVector(ctx, {x, y}, Vec.addMany(forceVectors));
+      }
+    }
+  }
 }
 
 function handleClick(ctx: CanvasRenderingContext2D, button: number, x: number, y: number) {
@@ -177,8 +201,8 @@ function draw() {
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, canvas.  width, canvas.height);
   drawGrid(ctx, ctx.canvas.width, ctx.canvas.height,)
-  drawVector(ctx, {x:0, y:0}, {x:2, y:2})
-  drawCharges(ctx, charges, )
+  drawForceVectors(ctx)
+  drawCharges(ctx)
   document.onmousedown = event => {
     handleClick(ctx, event.button, event.x, event.y)
   }

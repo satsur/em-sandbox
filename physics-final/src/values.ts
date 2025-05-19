@@ -3,7 +3,8 @@ export const ELEMENTARY_CHARGE = 1.602 * 10**-19 // in Coulombs
 export const VACUUM_PERMITIVITY = 8.85418782 * 10**-12 // in m^-3 kg^-1 s^4 A^2
 
 // Canvas variables
-export const SCALE = 50 // Pixels per unit
+export const SCALE = 50 // Pixels per "unit"
+export const METERS_PER_UNIT_ELECTROSTATIC = 10**-14.5
 export const GRID_LINE_STYLE = "#a1a1a1"
 export const GRID_LINE_WIDTH = 1
 
