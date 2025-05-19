@@ -7,6 +7,7 @@ export const SCALE = 50 // Pixels per "unit"
 export const METERS_PER_UNIT_ELECTROSTATIC = 10**-14.5
 export const GRID_LINE_STYLE = "#a1a1a1"
 export const GRID_LINE_WIDTH = 1
+export const VECTOR_MAX_LENGTH = 2
 
 // Charge variables
 export const CHARGE_LINE_STYLE = "#fff"

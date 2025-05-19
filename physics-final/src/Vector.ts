@@ -4,7 +4,7 @@ export type Vector = {
   }
   
 export function magnitude(vec: Vector): number {
-    return Math.sqrt(vec.x**2 + vec.y**2)
+    return Math.hypot(vec.x, vec.y)
 }
 
 export function normalize(vec: Vector): Vector {

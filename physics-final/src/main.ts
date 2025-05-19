@@ -2,7 +2,7 @@ import type { Vector } from './Vector'
 import * as Vec from './Vector'
 import type { Charge } from './Charge'
 import { calculateElectrostaticForce, forceVectorFromTestCharge, formatCharge } from './Charge'
-import { CHARGE_COLORS, CHARGE_DEFAULT_FONT_SIZE, CHARGE_FONT, CHARGE_LINE_STYLE, CHARGE_LINE_WIDTH, CHARGE_RADIUS, CHARGE_TEXT_COLOR, GRID_LINE_STYLE, GRID_LINE_WIDTH, MAX_CHARGES, SCALE } from './values'
+import { CHARGE_COLORS, CHARGE_DEFAULT_FONT_SIZE, CHARGE_FONT, CHARGE_LINE_STYLE, CHARGE_LINE_WIDTH, CHARGE_RADIUS, CHARGE_TEXT_COLOR, GRID_LINE_STYLE, GRID_LINE_WIDTH, MAX_CHARGES, SCALE, VECTOR_MAX_LENGTH } from './values'
 import './style.css'
 let charges: Charge[]
 
@@ -90,28 +90,36 @@ function drawCharges(ctx: CanvasRenderingContext2D) {
 function drawForceVectors(ctx: CanvasRenderingContext2D) {
   for (let x = 0; x < ctx.canvas.width; x += SCALE) {
     for (let y = 0; y < ctx.canvas.height; y += SCALE) {
-      let tooClose: boolean = false
       const gridPos: Vector = canvasToGrid(x, y)
       const testCharge: Charge = {position: gridPos, magnitude: 1} // Charge placement MUST use grid position
       const forceVectors: Vector[] = []
       for (const charge of charges) {
-        // Avoid drawing electrostatic force vectors right next to the point charge because it
-        // creates the illusion of attraction by positive charges and repulsion by negative charges
-        // Bit of a non-elegant work around, but it works for now
-        if (Vec.magnitude(Vec.distance(gridPos, charge.position)) <= 2) {
-          tooClose = true
-          break;
-        }
         forceVectors.push(forceVectorFromTestCharge(testCharge, charge, calculateElectrostaticForce(testCharge, charge)))
       }
-      if (!tooClose) {
-        drawVector(ctx, {x, y}, Vec.addMany(forceVectors));
-      }
+      const vec: Vector = capVectorLength(scaleVectorLogarithmically(Vec.addMany(forceVectors)))
+      drawVector(ctx, {x, y}, vec);
     }
   }
 }
 
-function handleClick(ctx: CanvasRenderingContext2D, button: number, x: number, y: number) {
+// scaleVectorLogarithmically and capVectorLength are supposed to minimize clipping of force vectors through the point charge
+// there may be a better solution that I've yet to find out
+function scaleVectorLogarithmically(vec: Vector): Vector {
+  const mag = Vec.magnitude(vec)
+  return Vec.scale(vec, Math.log(1 + mag))
+}
+
+function capVectorLength(vec: Vector): Vector {
+  const mag = Vec.magnitude(vec)
+  return mag <= VECTOR_MAX_LENGTH ? vec : Vec.scale(vec, VECTOR_MAX_LENGTH / mag)
+}
+
+function handleClick(ctx: CanvasRenderingContext2D, event: MouseEvent) {
+  const button = event.button
+  const x = event.x
+  const y = event.y
+  const shiftKey = event.shiftKey
+
   if (!isWithinCanvas(ctx, x, y)) return
   const gridMouseCoordinates = viewportToGrid(ctx, x, y)
 
@@ -124,7 +132,7 @@ function handleClick(ctx: CanvasRenderingContext2D, button: number, x: number, y
       charges.push(
         {
           position: viewportToGrid(ctx, x, y),
-          magnitude: -1
+          magnitude: shiftKey ? -1 : 1
         }
       )
     }
@@ -204,7 +212,7 @@ function draw() {
   drawForceVectors(ctx)
   drawCharges(ctx)
   document.onmousedown = event => {
-    handleClick(ctx, event.button, event.x, event.y)
+    handleClick(ctx, event)
   }
 }
 
